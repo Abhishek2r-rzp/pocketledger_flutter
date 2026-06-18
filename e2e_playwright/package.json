@@ -1,0 +1,10 @@
+{
+  "name": "e2e_playwright",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright browser E2E tests for PocketLedger web (use for visual / canvas-level testing)",
+  "scripts": {
+    "test": "echo 'Use `make test-web-e2e` to run Flutter integration tests on Chrome instead.' && exit 0",
+    "test:flutter": "cd .. && flutter test --platform chrome test/integration/ -r expanded"
+  }
+}

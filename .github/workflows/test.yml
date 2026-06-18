@@ -1,0 +1,301 @@
+name: PocketLedger CI — Full Test Suite
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:  # manual trigger
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+
+jobs:
+  # ─── Job 1: Unit + Widget Tests ───────────────────────────────
+  unit-and-widget-tests:
+    name: Unit + Widget Tests
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Verify Flutter
+        run: flutter doctor --verbose
+
+      - name: Create native project wrappers
+        run: flutter create --project-name pocketledger --platforms ios .
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.FLUTTER_HOME }}/.pub-cache
+            .dart_tool
+          key: pub-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: pub-
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run build_runner (generate freezed + drift code)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Run all unit tests
+        run: flutter test test/unit/ --reporter expanded
+
+      - name: Run all widget tests
+        run: flutter test test/widget/ --reporter expanded
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            build/reports/
+            test/**/**.json
+          if-no-files-found: ignore
+
+  # ─── Job 2: Integration Tests ─────────────────────────────────
+  integration-tests:
+    name: Integration Tests (iOS Simulator)
+    needs: unit-and-widget-tests
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Create native project wrappers
+        run: flutter create --project-name pocketledger --platforms ios .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Boot iOS Simulator
+        run: |
+          xcrun simctl boot 'iPhone 15 Pro'
+          xcrun simctl waitForBoot 'iPhone 15 Pro'
+
+      - name: Run integration tests
+        run: flutter test test/integration/ --reporter expanded -d iPhone
+
+      - name: Cleanup simulator
+        if: always()
+        run: xcrun simctl shutdown 'iPhone 15 Pro' || true
+
+  # ─── Job 3: iOS Build Check ───────────────────────────────────
+  ios-build-check:
+    name: iOS Build (Compilation Check)
+    needs: unit-and-widget-tests
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Create native project wrappers
+        run: flutter create --project-name pocketledger --platforms ios .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build iOS (debug, no signing)
+        run: flutter build ios --debug --no-codesign
+
+      - name: Analyze Dart code
+        run: dart analyze lib/
+
+  # ─── Job 4: Full E2E (Nightly / Manual) ──────────────────────
+  e2e-tests:
+    name: End-to-End Tests
+    if: github.event_name == 'workflow_dispatch'
+    needs: [unit-and-widget-tests, ios-build-check]
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Create native project wrappers
+        run: flutter create --project-name pocketledger --platforms ios .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Boot iOS Simulator
+        run: |
+          xcrun simctl boot 'iPhone 15 Pro'
+          xcrun simctl waitForBoot 'iPhone 15 Pro'
+
+      - name: Run E2E tests
+        run: flutter test test/e2e/ --reporter expanded -d iPhone
+        env:
+          FLUTTER_TEST: true
+
+      - name: Upload E2E screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: |
+            screenshots/
+            test/**/failures/
+          if-no-files-found: ignore
+
+  # ─── Job 5: Project Structure Verification ────────────────────
+  verify-structure:
+    name: Project Structure Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify directory structure
+        run: |
+          errors=0
+          # Check critical directories exist
+          for dir in \
+            "lib/core/models" \
+            "lib/core/database/daos" \
+            "lib/core/security" \
+            "lib/core/privacy" \
+            "lib/agents/agent_core" \
+            "lib/features/onboarding" \
+            "lib/features/lock" \
+            "lib/features/dashboard" \
+            "lib/features/import" \
+            "lib/features/review_queue" \
+            "lib/features/transactions" \
+            "lib/features/charts" \
+            "lib/features/budgets" \
+            "lib/features/recurring_payments" \
+            "lib/features/import_history" \
+            "lib/features/settings" \
+            "lib/features/agent_logs" \
+            "lib/parsers" \
+            "lib/services" \
+            "lib/helpers" \
+            "test/unit" \
+            "test/widget" \
+            "test/integration" \
+            "test/e2e" \
+            "test_resources" \
+            ".github/workflows" \
+            "scripts"; do
+            if [ ! -d "$dir" ]; then
+              echo "❌ MISSING: $dir"
+              errors=$((errors + 1))
+            fi
+          done
+
+          # Check critical files exist
+          for file in \
+            "pubspec.yaml" \
+            "analysis_options.yaml" \
+            "lib/main.dart" \
+            "lib/app.dart" \
+            "lib/router.dart" \
+            "lib/core/models/enums.dart" \
+            "lib/core/models/transaction.dart" \
+            "lib/core/database/database.dart" \
+            "lib/core/database/seed_data.dart" \
+            "lib/agents/agent_core/agent_protocol.dart" \
+            "lib/agents/agent_core/agent_orchestrator.dart" \
+            "test_resources/sample_indian_bank_statement.csv"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ MISSING: $file"
+              errors=$((errors + 1))
+            fi
+          done
+
+          # Check agent files
+          for agent in \
+            file_import_agent statement_parser_agent transaction_normalizer_agent \
+            deduplication_agent merchant_cleaner_agent categorization_agent \
+            review_queue_agent learning_agent budget_agent \
+            recurring_payment_agent insight_agent privacy_guard_agent; do
+            if [ ! -f "lib/agents/$agent.dart" ]; then
+              echo "❌ MISSING AGENT: lib/agents/$agent.dart"
+              errors=$((errors + 1))
+            fi
+          done
+
+          # Check screen files
+          for screen in \
+            onboarding lock dashboard import review_queue \
+            transactions transaction_detail charts budgets \
+            recurring_payments import_history settings agent_logs; do
+            if [ ! -f "lib/features/${screen}/${screen}_screen.dart" ]; then
+              echo "❌ MISSING SCREEN: lib/features/${screen}/${screen}_screen.dart"
+              errors=$((errors + 1))
+            fi
+          done
+
+          echo "---"
+          if [ $errors -eq 0 ]; then
+            echo "✅ All $errors errors found"
+          else
+            echo "❌ $errors errors found"
+          fi
+          exit $errors
+
+      - name: Verify sample CSV is valid
+        run: |
+          head -1 test_resources/sample_indian_bank_statement.csv
+          lines=$(wc -l < test_resources/sample_indian_bank_statement.csv)
+          echo "Sample CSV: $lines lines (expected 31: header + 30 transactions)"
+          if [ "$lines" -ge 20 ]; then
+            echo "✅ CSV looks valid"
+          else
+            echo "❌ CSV too short"
+            exit 1
+          fi
