@@ -1,0 +1,5 @@
+- [Home](Home)
+- [Features](Features)
+- [Architecture](Architecture)
+- [Setup](Setup)
+- [Screenshots](Screenshots)
