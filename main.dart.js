@@ -31741,7 +31741,9 @@ return A.X(n.oY(),$async$zX)
 case 14:i=d
 l=i
 h=B.lt.Mi(0,l,!0)
-if(B.d.q(h,"/Encrypt")||B.d.q(h,"EncryptMetadata"))throw g
+if(B.d.q(h,"/Encrypt")||B.d.q(h,"EncryptMetadata"))k=b==null||b.length===0
+else k=!1
+if(k)throw g
 k=A.aXJ(l)
 q=k
 s=1
