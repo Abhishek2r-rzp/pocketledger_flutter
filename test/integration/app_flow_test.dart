@@ -18,11 +18,14 @@ void main() {
     return GoRouter(
       initialLocation: '/onboarding',
       routes: [
-        GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
+        GoRoute(
+            path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
         GoRoute(path: '/lock', builder: (_, __) => const LockScreen()),
         GoRoute(path: '/', builder: (_, __) => const DashboardScreen()),
         GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
-        GoRoute(path: '/transactions', builder: (_, __) => const TransactionsScreen()),
+        GoRoute(
+            path: '/transactions',
+            builder: (_, __) => const TransactionsScreen()),
         GoRoute(path: '/import', builder: (_, __) => const ImportScreen()),
       ],
     );
@@ -215,7 +218,8 @@ void main() {
 
       router.go('/lock');
       await tester.pump();
-      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
+      await tester
+          .runAsync(() => Future.delayed(const Duration(milliseconds: 100)));
       await tester.pumpAndSettle();
 
       expect(find.textContaining('No passcode configured'), findsOneWidget);
@@ -240,7 +244,9 @@ void main() {
       router.go('/transactions');
       await tester.pumpAndSettle();
       expect(find.text('Search transactions...'), findsOneWidget);
-      expect(find.textContaining('Salary'), findsWidgets);
+      expect(find.text('No transactions found'), findsOneWidget);
+      expect(
+          find.text('Import a bank statement to get started'), findsOneWidget);
     });
   });
 }

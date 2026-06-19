@@ -93,7 +93,7 @@ class ImportScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               Expanded(
                 child: SingleChildScrollView(
-                  child: _PasswordPrompt(
+                  child: PasswordPrompt(
                     fileName: state.fileName,
                     fileType: state.fileType,
                     message: state.message,
@@ -303,13 +303,14 @@ class _SummaryRow extends StatelessWidget {
   }
 }
 
-class _PasswordPrompt extends StatefulWidget {
+class PasswordPrompt extends StatefulWidget {
   final String fileName;
   final String fileType;
   final String? message;
   final ValueChanged<String> onSubmit;
 
-  const _PasswordPrompt({
+  const PasswordPrompt({
+    super.key,
     required this.fileName,
     required this.fileType,
     this.message,
@@ -317,10 +318,10 @@ class _PasswordPrompt extends StatefulWidget {
   });
 
   @override
-  State<_PasswordPrompt> createState() => _PasswordPromptState();
+  State<PasswordPrompt> createState() => _PasswordPromptState();
 }
 
-class _PasswordPromptState extends State<_PasswordPrompt> {
+class _PasswordPromptState extends State<PasswordPrompt> {
   final _controller = TextEditingController();
 
   @override

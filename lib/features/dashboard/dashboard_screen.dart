@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:pocketledger/core/models/transaction.dart';
 import 'package:pocketledger/core/models/category.dart';
 import 'package:pocketledger/features/dashboard/dashboard_provider.dart';
 import 'package:pocketledger/core/theme/app_colors.dart';
+import 'package:pocketledger/core/theme/app_design_system.dart';
 import 'package:pocketledger/core/theme/glass_card.dart';
 import 'package:pocketledger/core/theme/premium_shimmer.dart';
 
@@ -43,7 +43,7 @@ class DashboardScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.cardGlass,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.cardGlassBorder, width: 0.5),
+                  border: Border.all(color: AppGlass.stroke, width: 0.6),
                 ),
                 child: const Icon(Icons.tune_rounded, size: 18),
               ),
@@ -59,7 +59,7 @@ class DashboardScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: AppColors.cardGlass,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.cardGlassBorder, width: 0.5),
+                  border: Border.all(color: AppGlass.stroke, width: 0.6),
                 ),
                 child: const Icon(Icons.settings, size: 18),
               ),
@@ -71,7 +71,8 @@ class DashboardScreen extends ConsumerWidget {
       body: data.when(
         loading: () => const _DashboardShimmer(),
         error: (e, _) => Center(
-          child: Text('Error: $e', style: const TextStyle(color: AppColors.textSecondary)),
+          child: Text('Error: $e',
+              style: const TextStyle(color: AppColors.textSecondary)),
         ),
         data: (dashboard) {
           return RefreshIndicator(
@@ -86,33 +87,99 @@ class DashboardScreen extends ConsumerWidget {
                   expenses: dashboard.totalExpenses,
                   savings: dashboard.savings,
                   savingsRate: dashboard.savingsRate,
-                ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOutCubic).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
+                )
+                    .animate()
+                    .fadeIn(duration: 400.ms, curve: Curves.easeOutCubic)
+                    .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 400.ms,
+                        curve: Curves.easeOutCubic),
                 const SizedBox(height: 12),
                 _IncomeExpenseRow(
                   income: dashboard.totalIncome,
                   expenses: dashboard.totalExpenses,
-                ).animate().fadeIn(duration: 400.ms, delay: 80.ms, curve: Curves.easeOutCubic).slideY(begin: 0.1, end: 0, duration: 400.ms, delay: 80.ms, curve: Curves.easeOutCubic),
+                )
+                    .animate()
+                    .fadeIn(
+                        duration: 400.ms,
+                        delay: 80.ms,
+                        curve: Curves.easeOutCubic)
+                    .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 400.ms,
+                        delay: 80.ms,
+                        curve: Curves.easeOutCubic),
                 const SizedBox(height: 12),
-                _MonthlyChartCard(data: dashboard.monthlyData).animate().fadeIn(duration: 400.ms, delay: 160.ms, curve: Curves.easeOutCubic).slideY(begin: 0.1, end: 0, duration: 400.ms, delay: 160.ms, curve: Curves.easeOutCubic),
+                _MonthlyChartCard(data: dashboard.monthlyData)
+                    .animate()
+                    .fadeIn(
+                        duration: 400.ms,
+                        delay: 160.ms,
+                        curve: Curves.easeOutCubic)
+                    .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 400.ms,
+                        delay: 160.ms,
+                        curve: Curves.easeOutCubic),
                 const SizedBox(height: 12),
                 _CategoryCard(
                   data: dashboard.categoryTotals,
                   categories: dashboard.categories,
-                ).animate().fadeIn(duration: 400.ms, delay: 240.ms, curve: Curves.easeOutCubic).slideY(begin: 0.1, end: 0, duration: 400.ms, delay: 240.ms, curve: Curves.easeOutCubic),
+                )
+                    .animate()
+                    .fadeIn(
+                        duration: 400.ms,
+                        delay: 240.ms,
+                        curve: Curves.easeOutCubic)
+                    .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 400.ms,
+                        delay: 240.ms,
+                        curve: Curves.easeOutCubic),
                 const SizedBox(height: 12),
-                _QuickActionsGrid(context: context).animate().fadeIn(duration: 400.ms, delay: 320.ms, curve: Curves.easeOutCubic).slideY(begin: 0.1, end: 0, duration: 400.ms, delay: 320.ms, curve: Curves.easeOutCubic),
+                _QuickActionsGrid(context: context)
+                    .animate()
+                    .fadeIn(
+                        duration: 400.ms,
+                        delay: 320.ms,
+                        curve: Curves.easeOutCubic)
+                    .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 400.ms,
+                        delay: 320.ms,
+                        curve: Curves.easeOutCubic),
                 if (dashboard.needsReviewCount > 0) ...[
                   const SizedBox(height: 12),
-                  _ReviewBadge(count: dashboard.needsReviewCount, onTap: () => context.push('/review')).animate().fadeIn(duration: 400.ms, delay: 400.ms, curve: Curves.easeOutCubic),
+                  _ReviewBadge(
+                          count: dashboard.needsReviewCount,
+                          onTap: () => context.push('/review'))
+                      .animate()
+                      .fadeIn(
+                          duration: 400.ms,
+                          delay: 400.ms,
+                          curve: Curves.easeOutCubic),
                 ],
                 if (dashboard.insights.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _SectionHeader(title: 'Insights'),
                   const SizedBox(height: 8),
                   ...dashboard.insights.map((i) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _InsightCard(insight: i).animate().fadeIn(duration: 300.ms, curve: Curves.easeOutCubic).slideY(begin: 0.1, end: 0, duration: 300.ms, curve: Curves.easeOutCubic),
-                  )),
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _InsightCard(insight: i)
+                            .animate()
+                            .fadeIn(
+                                duration: 300.ms, curve: Curves.easeOutCubic)
+                            .slideY(
+                                begin: 0.1,
+                                end: 0,
+                                duration: 300.ms,
+                                curve: Curves.easeOutCubic),
+                      )),
                 ],
               ],
             ),
@@ -216,15 +283,19 @@ class _BalanceHeader extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      savings >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                      savings >= 0
+                          ? Icons.trending_up_rounded
+                          : Icons.trending_down_rounded,
                       size: 14,
-                      color: savings >= 0 ? AppColors.income : AppColors.expense,
+                      color:
+                          savings >= 0 ? AppColors.income : AppColors.expense,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${savingsRate.toStringAsFixed(1)}%',
                       style: TextStyle(
-                        color: savings >= 0 ? AppColors.income : AppColors.expense,
+                        color:
+                            savings >= 0 ? AppColors.income : AppColors.expense,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -248,7 +319,8 @@ class _BalanceHeader extends StatelessWidget {
   }
 
   String _formatAmount(double amount) {
-    if (amount >= 10000000) return '${(amount / 10000000).toStringAsFixed(1)}Cr';
+    if (amount >= 10000000)
+      return '${(amount / 10000000).toStringAsFixed(1)}Cr';
     if (amount >= 100000) return '${(amount / 100000).toStringAsFixed(1)}L';
     if (amount >= 1000) return '${(amount / 1000).toStringAsFixed(1)}K';
     return amount.toStringAsFixed(0);
@@ -281,11 +353,13 @@ class _IncomeExpenseRow extends StatelessWidget {
                         color: AppColors.income.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.trending_down_rounded, size: 18, color: AppColors.income),
+                      child: const Icon(Icons.trending_down_rounded,
+                          size: 18, color: AppColors.income),
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.income.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(6),
@@ -293,9 +367,14 @@ class _IncomeExpenseRow extends StatelessWidget {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.arrow_upward_rounded, size: 10, color: AppColors.income),
+                          Icon(Icons.arrow_upward_rounded,
+                              size: 10, color: AppColors.income),
                           SizedBox(width: 2),
-                          Text('12%', style: TextStyle(fontSize: 10, color: AppColors.income, fontWeight: FontWeight.w600)),
+                          Text('12%',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.income,
+                                  fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -340,11 +419,13 @@ class _IncomeExpenseRow extends StatelessWidget {
                         color: AppColors.expense.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.trending_up_rounded, size: 18, color: AppColors.expense),
+                      child: const Icon(Icons.trending_up_rounded,
+                          size: 18, color: AppColors.expense),
                     ),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.expense.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(6),
@@ -352,9 +433,14 @@ class _IncomeExpenseRow extends StatelessWidget {
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.arrow_downward_rounded, size: 10, color: AppColors.expense),
+                          Icon(Icons.arrow_downward_rounded,
+                              size: 10, color: AppColors.expense),
                           SizedBox(width: 2),
-                          Text('8%', style: TextStyle(fontSize: 10, color: AppColors.expense, fontWeight: FontWeight.w600)),
+                          Text('8%',
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.expense,
+                                  fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -387,7 +473,8 @@ class _IncomeExpenseRow extends StatelessWidget {
   }
 
   String _formatAmount(double amount) {
-    if (amount >= 10000000) return '${(amount / 10000000).toStringAsFixed(1)}Cr';
+    if (amount >= 10000000)
+      return '${(amount / 10000000).toStringAsFixed(1)}Cr';
     if (amount >= 100000) return '${(amount / 100000).toStringAsFixed(1)}L';
     if (amount >= 1000) return '${(amount / 1000).toStringAsFixed(1)}K';
     return amount.toStringAsFixed(0);
@@ -427,7 +514,9 @@ class _MonthlyChartCard extends StatelessWidget {
           SizedBox(
             height: 160,
             child: data.isEmpty
-                ? const Center(child: Text('No data', style: TextStyle(color: AppColors.textTertiary)))
+                ? const Center(
+                    child: Text('No data',
+                        style: TextStyle(color: AppColors.textTertiary)))
                 : BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
@@ -438,7 +527,8 @@ class _MonthlyChartCard extends StatelessWidget {
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             return BarTooltipItem(
                               '₹${rod.toY.toStringAsFixed(0)}',
-                              const TextStyle(color: Colors.white, fontSize: 12),
+                              const TextStyle(
+                                  color: Colors.white, fontSize: 12),
                             );
                           },
                         ),
@@ -460,18 +550,37 @@ class _MonthlyChartCard extends StatelessWidget {
                             reservedSize: 20,
                             getTitlesWidget: (value, meta) {
                               final idx = value.toInt();
-                              if (idx < 0 || idx >= data.length) return const SizedBox();
-                              final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                              if (idx < 0 || idx >= data.length)
+                                return const SizedBox();
+                              final months = [
+                                'Jan',
+                                'Feb',
+                                'Mar',
+                                'Apr',
+                                'May',
+                                'Jun',
+                                'Jul',
+                                'Aug',
+                                'Sep',
+                                'Oct',
+                                'Nov',
+                                'Dec'
+                              ];
                               return Text(
                                 months[data[idx].month - 1].substring(0, 3),
-                                style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                                style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.textTertiary),
                               );
                             },
                           ),
                         ),
-                        leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        leftTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
                       ),
                       borderData: FlBorderData(show: false),
                       barGroups: List.generate(data.length, (i) {
@@ -588,12 +697,14 @@ class _CategoryCard extends StatelessWidget {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(20),
-                child: Text('No spending data', style: TextStyle(color: AppColors.textTertiary)),
+                child: Text('No spending data',
+                    style: TextStyle(color: AppColors.textTertiary)),
               ),
             )
           else
             ...data.take(5).map((d) {
-              final cat = categories.where((c) => c.id == d.categoryId).firstOrNull;
+              final cat =
+                  categories.where((c) => c.id == d.categoryId).firstOrNull;
               final color = Color(cat?.colorValue ?? 0xFF9E9E9E);
               final total = data.fold<double>(0, (s, i) => s + i.amount);
               final pct = total > 0 ? (d.amount / total) * 100 : 0.0;
@@ -738,14 +849,11 @@ class _ReviewBadge extends StatelessWidget {
         onTap: onTap,
         child: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.rate_review_rounded, size: 18, color: AppColors.warning),
+            const AppIconBadge(
+              icon: Icons.rate_review_rounded,
+              color: AppColors.warning,
+              size: 36,
+              iconSize: 18,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -758,7 +866,8 @@ class _ReviewBadge extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 20),
+            const Icon(Icons.chevron_right_rounded,
+                color: AppColors.textTertiary, size: 20),
           ],
         ),
       ),
@@ -797,14 +906,11 @@ class _InsightCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(iconData, size: 18, color: iconColor),
+          AppIconBadge(
+            icon: iconData,
+            color: iconColor,
+            size: 36,
+            iconSize: 18,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -845,33 +951,33 @@ class _QuickActionsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = [
-      _QuickAction(Icons.list_alt_rounded, 'Transactions', AppColors.primary, () => context.push('/transactions')),
-      _QuickAction(Icons.search_rounded, 'Search', AppColors.primary, () => context.push('/search')),
-      _QuickAction(Icons.account_balance_rounded, 'Accounts', AppColors.accent, () => context.push('/accounts')),
-      _QuickAction(Icons.label_rounded, 'Labels', AppColors.info, () => context.push('/labels')),
-      _QuickAction(Icons.pie_chart_rounded, 'Analytics', AppColors.accent, () => context.push('/charts')),
-      _QuickAction(Icons.account_balance_wallet_rounded, 'Budgets', AppColors.warning, () => context.push('/budgets')),
-      _QuickAction(Icons.repeat_rounded, 'Recurring', AppColors.info, () => context.push('/recurring')),
-      _QuickAction(Icons.history_rounded, 'History', AppColors.income, () => context.push('/import-history')),
-      _QuickAction(Icons.rate_review_rounded, 'Review', AppColors.expense, () => context.push('/review')),
+      _QuickAction(Icons.list_alt_rounded, 'Transactions', AppColors.primary,
+          () => context.push('/transactions')),
+      _QuickAction(Icons.upload_file_rounded, 'Import', AppColors.blush,
+          () => context.push('/import')),
+      _QuickAction(Icons.search_rounded, 'Search', AppColors.primary,
+          () => context.push('/search')),
+      _QuickAction(Icons.account_balance_rounded, 'Accounts', AppColors.accent,
+          () => context.push('/accounts')),
+      _QuickAction(Icons.label_rounded, 'Labels', AppColors.info,
+          () => context.push('/labels')),
+      _QuickAction(Icons.pie_chart_rounded, 'Analytics', AppColors.accent,
+          () => context.push('/charts')),
+      _QuickAction(Icons.account_balance_wallet_rounded, 'Budgets',
+          AppColors.warning, () => context.push('/budgets')),
+      _QuickAction(Icons.repeat_rounded, 'Recurring', AppColors.info,
+          () => context.push('/recurring')),
+      _QuickAction(Icons.history_rounded, 'History', AppColors.income,
+          () => context.push('/import-history')),
+      _QuickAction(Icons.rate_review_rounded, 'Review', AppColors.expense,
+          () => context.push('/review')),
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Text(
-            'Quick Actions',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
+        const AppSectionLabel('Quick Actions'),
+        const SizedBox(height: AppSpacing.xs),
         GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
@@ -890,16 +996,8 @@ class _QuickActionsGrid extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: action.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(action.icon, size: 20, color: action.color),
-                  ),
-                  const SizedBox(height: 8),
+                  AppIconBadge(icon: action.icon, color: action.color),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     action.label,
                     style: const TextStyle(

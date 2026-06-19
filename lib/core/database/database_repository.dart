@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:uuid/uuid.dart';
 import 'package:pocketledger/core/repository.dart';
 import 'package:pocketledger/core/models/account.dart';
 import 'package:pocketledger/core/models/agent_action_log.dart';
@@ -23,8 +22,6 @@ import 'package:pocketledger/core/database/daos/recurring_payment_dao.dart';
 import 'package:pocketledger/core/database/daos/agent_log_dao.dart';
 import 'package:pocketledger/core/database/daos/settings_dao.dart';
 import 'package:pocketledger/core/database/seed_data.dart';
-
-final _uuid = Uuid();
 
 class DatabaseRepository extends Repository {
   final AppDatabase _db;
@@ -66,18 +63,26 @@ class DatabaseRepository extends Repository {
   }
 
   Future<void> _loadAll() async {
-    _categories = (await _categoryDao.getAllCategories()).map(_mapCategoryEntry).toList();
+    _categories =
+        (await _categoryDao.getAllCategories()).map(_mapCategoryEntry).toList();
     if (_categories.isEmpty) {
       _categories = List.from(Category.defaults);
     }
 
-    _transactions = (await _transactionDao.getAllTransactions()).map(_mapTransactionEntry).toList();
+    _transactions = (await _transactionDao.getAllTransactions())
+        .map(_mapTransactionEntry)
+        .toList();
     _txnCounter = _transactions.length;
 
-    _importBatches = (await _importBatchDao.getAllBatches()).map(_mapImportBatchEntry).toList();
+    _importBatches = (await _importBatchDao.getAllBatches())
+        .map(_mapImportBatchEntry)
+        .toList();
     _budgets = (await _budgetDao.getAllBudgets()).map(_mapBudgetEntry).toList();
-    _recurringPayments = (await _recurringPaymentDao.getAllPayments()).map(_mapRecurringPaymentEntry).toList();
-    _agentLogs = (await _agentLogDao.getAllLogs()).map(_mapAgentLogEntry).toList();
+    _recurringPayments = (await _recurringPaymentDao.getAllPayments())
+        .map(_mapRecurringPaymentEntry)
+        .toList();
+    _agentLogs =
+        (await _agentLogDao.getAllLogs()).map(_mapAgentLogEntry).toList();
 
     final settingsEntry = await _settingsDao.getOrCreateSettings();
     _settings = _mapSettingsEntry(settingsEntry);
@@ -93,52 +98,6 @@ class DatabaseRepository extends Repository {
 
     final accountEntries = await _db.accountsQuery().get();
     _accounts = accountEntries.map(_mapAccountEntry).toList();
-
-    if (_transactions.isEmpty) {
-      _seedSampleData();
-    }
-  }
-
-  void _seedSampleData() {
-    final now = DateTime.now();
-    final merchants = [
-      'Amazon', 'Swiggy', 'Uber', 'Zomato', 'Flipkart',
-      'BigBasket', 'Netflix', 'Reliance Digital', 'Myntra', 'DMart',
-    ];
-    for (int i = 0; i < 20; i++) {
-      final day = now.subtract(Duration(days: i));
-      final isCredit = i % 5 == 0;
-      final cat = _categories[i % (_categories.length - 1)];
-      final txn = Transaction(
-        id: _uuid.v4(),
-        date: day,
-        amount: isCredit ? 50000.0 + (i * 100) : (200.0 + (i * 50)),
-        direction: isCredit ? TransactionDirection.income : TransactionDirection.expense,
-        description: isCredit ? 'Salary deposit' : 'Payment to ${merchants[i % merchants.length]}',
-        merchantName: isCredit ? 'Employer Inc.' : merchants[i % merchants.length],
-        categoryId: isCredit ? 'salary' : cat.id,
-        categoryName: isCredit ? 'Salary & Income' : cat.name,
-        balance: 50000.0 - (i * 2000),
-        currency: 'INR',
-        fingerprint: 'fp_$_txnCounter',
-        importBatchId: 'seed_batch',
-        notes: null,
-        tags: [],
-        createdAt: day,
-      );
-      _addTransaction(txn);
-    }
-    _importBatches.add(ImportBatch(
-      id: 'seed_batch',
-      fileName: 'sample_data.csv',
-      fileType: 'csv',
-      filePath: '',
-      totalRows: 20,
-      importedRows: 20,
-      duplicateRows: 0,
-      failedRows: 0,
-      createdAt: now,
-    ));
   }
 
   void _addTransaction(Transaction t) {
@@ -150,7 +109,8 @@ class DatabaseRepository extends Repository {
   List<ReviewItem> get reviewItems => List.unmodifiable(_reviewItems);
   List<ImportBatch> get importBatches => List.unmodifiable(_importBatches);
   List<Budget> get budgets => List.unmodifiable(_budgets);
-  List<RecurringPayment> get recurringPayments => List.unmodifiable(_recurringPayments);
+  List<RecurringPayment> get recurringPayments =>
+      List.unmodifiable(_recurringPayments);
   List<AgentActionLog> get agentLogs => List.unmodifiable(_agentLogs);
   UserSettings get settings => _settings;
   List<Category> get categories => List.unmodifiable(_categories);
@@ -186,7 +146,8 @@ class DatabaseRepository extends Repository {
     for (final t in transactions) {
       _addTransaction(t);
     }
-    _transactionDao.insertTransactions(transactions.map(_toTransactionEntry).toList());
+    _transactionDao
+        .insertTransactions(transactions.map(_toTransactionEntry).toList());
     return transactions.length;
   }
 

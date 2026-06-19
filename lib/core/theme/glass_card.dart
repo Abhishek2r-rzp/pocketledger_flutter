@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_design_system.dart';
 
 class GlassCard extends StatelessWidget {
   const GlassCard({
@@ -12,7 +11,7 @@ class GlassCard extends StatelessWidget {
     this.margin,
     this.height,
     this.width,
-    this.borderRadius = 20,
+    this.borderRadius = AppRadii.lg,
     this.onTap,
     this.onLongPress,
     this.gradient,
@@ -21,23 +20,21 @@ class GlassCard extends StatelessWidget {
     this.backgroundColor,
   });
 
-  GlassCard.premium({
+  const GlassCard.premium({
     super.key,
     required this.child,
     this.padding,
     this.margin,
     this.height,
     this.width,
-    this.borderRadius = 20,
+    this.borderRadius = AppRadii.lg,
     this.onTap,
     this.onLongPress,
-  })  : gradient = const LinearGradient(
-          colors: [Color(0xF2FFFFFF), Color(0x99FFFFFF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  })  : gradient = AppGlass.surfaceGradient,
+        shadows = AppGlass.liftedShadow,
+        border = const Border.fromBorderSide(
+          BorderSide(color: AppGlass.stroke, width: 0.7),
         ),
-        shadows = _premiumShadows,
-        border = _premiumBorder,
         backgroundColor = null;
 
   final Widget child;
@@ -53,26 +50,6 @@ class GlassCard extends StatelessWidget {
   final Border? border;
   final Color? backgroundColor;
 
-  static final List<BoxShadow> _premiumShadows = [
-    const BoxShadow(
-      color: Color(0x1F8A7C68),
-      blurRadius: 24,
-      offset: Offset(0, 12),
-    ),
-    BoxShadow(
-      color: AppColors.primary.withOpacity(0.12),
-      blurRadius: 36,
-      offset: const Offset(0, -4),
-    ),
-  ];
-
-  static const Border _premiumBorder = Border(
-    top: BorderSide(color: AppColors.cardGlassBorder, width: 0.5),
-    bottom: BorderSide(color: AppColors.cardGlassBorder, width: 0.5),
-    left: BorderSide(color: AppColors.cardGlassBorder, width: 0.5),
-    right: BorderSide(color: AppColors.cardGlassBorder, width: 0.5),
-  );
-
   @override
   Widget build(BuildContext context) {
     final Widget card = RepaintBoundary(
@@ -84,33 +61,23 @@ class GlassCard extends StatelessWidget {
           color: backgroundColor,
           gradient: gradient ??
               const LinearGradient(
-                colors: [Color(0xF2FFFFFF), Color(0xA6FFFFFF)],
+                colors: [AppGlass.surface, AppGlass.surfaceSoft],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
           borderRadius: BorderRadius.circular(borderRadius),
           border: border ??
-              const Border(
-                top: BorderSide(color: Color(0x14FFFFFF), width: 0.5),
-                bottom: BorderSide(color: Color(0x14FFFFFF), width: 0.5),
-                left: BorderSide(color: Color(0x14FFFFFF), width: 0.5),
-                right: BorderSide(color: Color(0x14FFFFFF), width: 0.5),
+              const Border.fromBorderSide(
+                BorderSide(color: AppGlass.hairline, width: 0.7),
               ),
-          boxShadow: shadows ??
-              const [
-                BoxShadow(
-                  color: Color(0x1A8A7C68),
-                  blurRadius: 22,
-                  offset: Offset(0, 10),
-                ),
-              ],
+          boxShadow: shadows ?? AppGlass.softShadow,
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            filter: AppGlass.backdropFilter,
             child: Padding(
-              padding: padding ?? const EdgeInsets.all(16),
+              padding: padding ?? const EdgeInsets.all(AppSpacing.md),
               child: child,
             ),
           ),
@@ -155,8 +122,8 @@ class GlassCardSmall extends StatelessWidget {
     final borderColor = (accentColor ?? AppColors.primary).withOpacity(0.15);
 
     return GlassCard(
-      padding: const EdgeInsets.all(14),
-      borderRadius: 16,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      borderRadius: AppRadii.md,
       onTap: onTap,
       border: Border(
         top: BorderSide(

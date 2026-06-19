@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app_colors.dart';
+import 'app_design_system.dart';
 
 class AppTheme {
   AppTheme._();
@@ -107,10 +108,13 @@ class AppTheme {
         color: AppColors.cardGlass,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: AppColors.cardGlassBorder, width: 0.8),
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          side: const BorderSide(color: AppGlass.stroke, width: 0.7),
         ),
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        margin: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
         clipBehavior: Clip.antiAlias,
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -120,19 +124,19 @@ class AppTheme {
         labelStyle: const TextStyle(color: AppColors.textSecondary),
         prefixIconColor: AppColors.textTertiary,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: AppColors.cardGlassBorder),
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          borderSide: const BorderSide(color: AppGlass.stroke),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: AppColors.cardGlassBorder),
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          borderSide: const BorderSide(color: AppGlass.stroke),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppRadii.lg),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
         ),
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -141,7 +145,7 @@ class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadii.lg),
           ),
           textStyle: const TextStyle(
             fontSize: 15,
@@ -155,7 +159,7 @@ class AppTheme {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadii.lg),
           ),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
         ),
@@ -166,7 +170,7 @@ class AppTheme {
           side: const BorderSide(color: AppColors.primaryLight),
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadii.lg),
           ),
         ),
       ),
@@ -181,15 +185,17 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
+          borderRadius: BorderRadius.all(Radius.circular(AppRadii.lg)),
         ),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.whiteMid,
         selectedColor: AppColors.primaryLight,
         labelStyle: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
-        side: const BorderSide(color: AppColors.cardGlassBorder),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        side: const BorderSide(color: AppGlass.stroke),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.md),
+        ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.transparent,
@@ -217,7 +223,9 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.textPrimary,
         contentTextStyle: const TextStyle(color: AppColors.surface),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.md),
+        ),
         behavior: SnackBarBehavior.floating,
       ),
       dividerTheme: const DividerThemeData(
@@ -229,14 +237,15 @@ class AppTheme {
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadii.xl)),
         ),
       ),
       dialogTheme: const DialogThemeData(
         backgroundColor: AppColors.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(24)),
+          borderRadius: BorderRadius.all(Radius.circular(AppRadii.xl)),
         ),
       ),
       textTheme: textTheme,
