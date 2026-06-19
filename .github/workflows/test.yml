@@ -32,7 +32,10 @@ jobs:
         run: flutter doctor --verbose
 
       - name: Create native project wrappers
-        run: flutter create --project-name pocketledger --platforms ios .
+        run: |
+          flutter create --project-name pocketledger --platforms ios .
+          perl -0pi -e "s/# platform :ios, '[0-9.]+'/platform :ios, '14.0'/" ios/Podfile
+          perl -0pi -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/g" ios/Runner.xcodeproj/project.pbxproj
 
       - name: Cache pub dependencies
         uses: actions/cache@v4
@@ -83,7 +86,10 @@ jobs:
           cache: true
 
       - name: Create native project wrappers
-        run: flutter create --project-name pocketledger --platforms ios .
+        run: |
+          flutter create --project-name pocketledger --platforms ios .
+          perl -0pi -e "s/# platform :ios, '[0-9.]+'/platform :ios, '14.0'/" ios/Podfile
+          perl -0pi -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/g" ios/Runner.xcodeproj/project.pbxproj
 
       - name: Install dependencies
         run: flutter pub get
@@ -121,7 +127,10 @@ jobs:
           cache: true
 
       - name: Create native project wrappers
-        run: flutter create --project-name pocketledger --platforms ios .
+        run: |
+          flutter create --project-name pocketledger --platforms ios .
+          perl -0pi -e "s/# platform :ios, '[0-9.]+'/platform :ios, '14.0'/" ios/Podfile
+          perl -0pi -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/g" ios/Runner.xcodeproj/project.pbxproj
 
       - name: Install dependencies
         run: flutter pub get
@@ -154,7 +163,10 @@ jobs:
           cache: true
 
       - name: Create native project wrappers
-        run: flutter create --project-name pocketledger --platforms ios .
+        run: |
+          flutter create --project-name pocketledger --platforms ios .
+          perl -0pi -e "s/# platform :ios, '[0-9.]+'/platform :ios, '14.0'/" ios/Podfile
+          perl -0pi -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/g" ios/Runner.xcodeproj/project.pbxproj
 
       - name: Install dependencies
         run: flutter pub get
