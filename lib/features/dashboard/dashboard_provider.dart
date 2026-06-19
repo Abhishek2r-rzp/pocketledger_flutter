@@ -9,6 +9,7 @@ class DashboardData {
   final double totalExpenses;
   final double savings;
   final double savingsRate;
+  final int transactionCount;
   final int needsReviewCount;
   final List<({int month, double income, double expense})> monthlyData;
   final List<({String categoryId, double amount})> categoryTotals;
@@ -20,6 +21,7 @@ class DashboardData {
     required this.totalExpenses,
     required this.savings,
     required this.savingsRate,
+    required this.transactionCount,
     required this.needsReviewCount,
     required this.monthlyData,
     required this.categoryTotals,
@@ -41,8 +43,8 @@ class DashboardDataNotifier extends AsyncNotifier<DashboardData> {
     final reviewCount = repo.reviewItems.length;
 
     final now = DateTime.now();
-    final thisMonth = transactions.where((t) =>
-        t.date.month == now.month && t.date.year == now.year);
+    final thisMonth = transactions
+        .where((t) => t.date.month == now.month && t.date.year == now.year);
 
     final totalIncome = thisMonth
         .where((t) => t.direction == TransactionDirection.income)
@@ -72,6 +74,7 @@ class DashboardDataNotifier extends AsyncNotifier<DashboardData> {
       totalExpenses: totalExpenses,
       savings: savings,
       savingsRate: savingsRate,
+      transactionCount: transactions.length,
       needsReviewCount: reviewCount,
       monthlyData: monthlyData,
       categoryTotals: categoryTotals,
@@ -80,7 +83,8 @@ class DashboardDataNotifier extends AsyncNotifier<DashboardData> {
     );
   }
 
-  List<({int month, double income, double expense})> _computeMonthlyData(List<Transaction> transactions) {
+  List<({int month, double income, double expense})> _computeMonthlyData(
+      List<Transaction> transactions) {
     final now = DateTime.now();
     final result = <({int month, double income, double expense})>[];
 
@@ -90,7 +94,9 @@ class DashboardDataNotifier extends AsyncNotifier<DashboardData> {
       final m = month <= 0 ? month + 12 : month;
       final y = month <= 0 ? year : now.year;
 
-      final monthTxns = transactions.where((t) => t.date.month == m && t.date.year == y).toList();
+      final monthTxns = transactions
+          .where((t) => t.date.month == m && t.date.year == y)
+          .toList();
 
       final income = monthTxns
           .where((t) => t.direction == TransactionDirection.income)
@@ -106,10 +112,11 @@ class DashboardDataNotifier extends AsyncNotifier<DashboardData> {
     return result;
   }
 
-  List<({String categoryId, double amount})> _computeCategoryTotals(List<Transaction> transactions) {
+  List<({String categoryId, double amount})> _computeCategoryTotals(
+      List<Transaction> transactions) {
     final now = DateTime.now();
-    final currentMonth = transactions.where((t) =>
-        t.date.month == now.month && t.date.year == now.year);
+    final currentMonth = transactions
+        .where((t) => t.date.month == now.month && t.date.year == now.year);
 
     final groups = currentMonth
         .where((t) => t.direction == TransactionDirection.expense)
@@ -132,28 +139,33 @@ class DashboardDataNotifier extends AsyncNotifier<DashboardData> {
     double savingsRate,
   ) {
     final insights = <({String icon, String title, String description})>[];
+    if (transactions.isEmpty) return insights;
 
     if (savingsRate < 0) {
       insights.add((
         icon: 'warning',
         title: 'Spending exceeds income',
-        description: 'Your expenses are higher than your income this month. Consider reviewing your spending.',
+        description:
+            'Your expenses are higher than your income this month. Consider reviewing your spending.',
       ));
     } else if (savingsRate < 20) {
       insights.add((
         icon: 'info',
         title: 'Low savings rate',
-        description: 'Your savings rate is ${savingsRate.toStringAsFixed(0)}%. Aim for at least 20%.',
+        description:
+            'Your savings rate is ${savingsRate.toStringAsFixed(0)}%. Aim for at least 20%.',
       ));
     }
 
     final topCategory = _computeCategoryTotals(transactions).firstOrNull;
     if (topCategory != null) {
-      final cat = categories.where((c) => c.id == topCategory.categoryId).firstOrNull;
+      final cat =
+          categories.where((c) => c.id == topCategory.categoryId).firstOrNull;
       insights.add((
         icon: 'trending_up',
         title: 'Top spending category',
-        description: 'Your highest spend this month is ${cat?.name ?? 'Unknown'} at ₹${topCategory.amount.toStringAsFixed(0)}.',
+        description:
+            'Your highest spend this month is ${cat?.name ?? 'Unknown'} at ₹${topCategory.amount.toStringAsFixed(0)}.',
       ));
     }
 
@@ -161,7 +173,8 @@ class DashboardDataNotifier extends AsyncNotifier<DashboardData> {
       insights.add((
         icon: 'receipt',
         title: '${transactions.length} total transactions',
-        description: 'You have ${transactions.length} tracked transactions. Keep your financial records up to date.',
+        description:
+            'You have ${transactions.length} tracked transactions. Keep your financial records up to date.',
       ));
     }
 
@@ -174,6 +187,7 @@ class DashboardDataNotifier extends AsyncNotifier<DashboardData> {
   }
 }
 
-final dashboardDataProvider = AsyncNotifierProvider<DashboardDataNotifier, DashboardData>(() {
+final dashboardDataProvider =
+    AsyncNotifierProvider<DashboardDataNotifier, DashboardData>(() {
   return DashboardDataNotifier();
 });

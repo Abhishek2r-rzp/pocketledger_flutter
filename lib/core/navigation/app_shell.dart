@@ -94,10 +94,10 @@ class _GlassBottomNavigationBar extends StatelessWidget {
         AppSpacing.md,
         0,
         AppSpacing.md,
-        AppSpacing.sm,
+        AppSpacing.xs,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadii.xl),
+        borderRadius: BorderRadius.circular(26),
         child: BackdropFilter(
           filter: AppGlass.backdropFilter,
           child: DecoratedBox(
@@ -108,8 +108,8 @@ class _GlassBottomNavigationBar extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xs,
-                vertical: AppSpacing.xs,
+                horizontal: 6,
+                vertical: 6,
               ),
               child: Row(
                 children: [
@@ -156,10 +156,10 @@ class _NavButton extends StatelessWidget {
         child: AnimatedContainer(
           duration: AppMotion.quick,
           curve: AppMotion.ease,
-          height: 54,
+          height: 50,
           decoration: BoxDecoration(
-            color: selected ? AppColors.primaryLight.withOpacity(0.44) : null,
-            borderRadius: BorderRadius.circular(AppRadii.lg),
+            color: selected ? AppColors.primaryLight.withOpacity(0.32) : null,
+            borderRadius: BorderRadius.circular(20),
             border: selected
                 ? Border.all(color: Colors.white.withOpacity(0.42), width: 0.6)
                 : null,
@@ -179,7 +179,7 @@ class _NavButton extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: color,
-                  fontSize: 10.5,
+                  fontSize: 10,
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 ),
               ),

@@ -75,6 +75,7 @@ class DashboardScreen extends ConsumerWidget {
               style: const TextStyle(color: AppColors.textSecondary)),
         ),
         data: (dashboard) {
+          final hasTransactions = dashboard.transactionCount > 0;
           return RefreshIndicator(
             onRefresh: () => ref.refresh(dashboardDataProvider.future),
             color: AppColors.primary,
@@ -82,64 +83,84 @@ class DashboardScreen extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 80, 16, 100),
               children: [
-                _BalanceHeader(
-                  income: dashboard.totalIncome,
-                  expenses: dashboard.totalExpenses,
-                  savings: dashboard.savings,
-                  savingsRate: dashboard.savingsRate,
-                )
-                    .animate()
-                    .fadeIn(duration: 400.ms, curve: Curves.easeOutCubic)
-                    .slideY(
+                if (!hasTransactions) ...[
+                  _EmptyDashboardCard(
+                    onImport: () => context.push('/import'),
+                  )
+                      .animate()
+                      .fadeIn(duration: 420.ms, curve: Curves.easeOutCubic)
+                      .slideY(
+                        begin: 0.08,
+                        end: 0,
+                        duration: 420.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
+                ] else ...[
+                  _BalanceHeader(
+                    savings: dashboard.savings,
+                    savingsRate: dashboard.savingsRate,
+                    transactionCount: dashboard.transactionCount,
+                  )
+                      .animate()
+                      .fadeIn(duration: 400.ms, curve: Curves.easeOutCubic)
+                      .slideY(
                         begin: 0.1,
                         end: 0,
                         duration: 400.ms,
-                        curve: Curves.easeOutCubic),
-                const SizedBox(height: 12),
-                _IncomeExpenseRow(
-                  income: dashboard.totalIncome,
-                  expenses: dashboard.totalExpenses,
-                )
-                    .animate()
-                    .fadeIn(
+                        curve: Curves.easeOutCubic,
+                      ),
+                  const SizedBox(height: 12),
+                  _IncomeExpenseRow(
+                    income: dashboard.totalIncome,
+                    expenses: dashboard.totalExpenses,
+                  )
+                      .animate()
+                      .fadeIn(
                         duration: 400.ms,
                         delay: 80.ms,
-                        curve: Curves.easeOutCubic)
-                    .slideY(
+                        curve: Curves.easeOutCubic,
+                      )
+                      .slideY(
                         begin: 0.1,
                         end: 0,
                         duration: 400.ms,
                         delay: 80.ms,
-                        curve: Curves.easeOutCubic),
-                const SizedBox(height: 12),
-                _MonthlyChartCard(data: dashboard.monthlyData)
-                    .animate()
-                    .fadeIn(
+                        curve: Curves.easeOutCubic,
+                      ),
+                  const SizedBox(height: 12),
+                  _MonthlyChartCard(data: dashboard.monthlyData)
+                      .animate()
+                      .fadeIn(
                         duration: 400.ms,
                         delay: 160.ms,
-                        curve: Curves.easeOutCubic)
-                    .slideY(
+                        curve: Curves.easeOutCubic,
+                      )
+                      .slideY(
                         begin: 0.1,
                         end: 0,
                         duration: 400.ms,
                         delay: 160.ms,
-                        curve: Curves.easeOutCubic),
-                const SizedBox(height: 12),
-                _CategoryCard(
-                  data: dashboard.categoryTotals,
-                  categories: dashboard.categories,
-                )
-                    .animate()
-                    .fadeIn(
+                        curve: Curves.easeOutCubic,
+                      ),
+                  const SizedBox(height: 12),
+                  _CategoryCard(
+                    data: dashboard.categoryTotals,
+                    categories: dashboard.categories,
+                  )
+                      .animate()
+                      .fadeIn(
                         duration: 400.ms,
                         delay: 240.ms,
-                        curve: Curves.easeOutCubic)
-                    .slideY(
+                        curve: Curves.easeOutCubic,
+                      )
+                      .slideY(
                         begin: 0.1,
                         end: 0,
                         duration: 400.ms,
                         delay: 240.ms,
-                        curve: Curves.easeOutCubic),
+                        curve: Curves.easeOutCubic,
+                      ),
+                ],
                 const SizedBox(height: 12),
                 _QuickActionsGrid(context: context)
                     .animate()
@@ -215,17 +236,149 @@ class _DashboardShimmer extends StatelessWidget {
   }
 }
 
+class _EmptyDashboardCard extends StatelessWidget {
+  const _EmptyDashboardCard({required this.onImport});
+
+  final VoidCallback onImport;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard.premium(
+      padding: const EdgeInsets.all(24),
+      borderRadius: AppRadii.xl,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const AppIconBadge(
+                icon: Icons.lock_outline_rounded,
+                color: AppColors.primary,
+                size: 44,
+                iconSize: 21,
+              ),
+              const Spacer(),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.68),
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                  border: Border.all(color: AppGlass.stroke, width: 0.6),
+                ),
+                child: const Text(
+                  '0 transactions',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          const Text(
+            'Your ledger is clean.',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 31,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1,
+              height: 1.05,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Import a bank statement to build your private money view.',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 15,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 22),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onImport,
+              icon: const Icon(Icons.upload_file_rounded),
+              label: const Text('Import PDF or CSV'),
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Row(
+            children: [
+              _EmptyStateMetric(label: 'Balance', value: '₹0'),
+              SizedBox(width: 10),
+              _EmptyStateMetric(label: 'Income', value: '₹0'),
+              SizedBox(width: 10),
+              _EmptyStateMetric(label: 'Spend', value: '₹0'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyStateMetric extends StatelessWidget {
+  const _EmptyStateMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.48),
+          borderRadius: BorderRadius.circular(AppRadii.md),
+          border: Border.all(color: AppGlass.hairline, width: 0.6),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.textTertiary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _BalanceHeader extends StatelessWidget {
-  final double income;
-  final double expenses;
   final double savings;
   final double savingsRate;
+  final int transactionCount;
 
   const _BalanceHeader({
-    required this.income,
-    required this.expenses,
     required this.savings,
     required this.savingsRate,
+    required this.transactionCount,
   });
 
   @override
@@ -344,41 +497,11 @@ class _IncomeExpenseRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.income.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.trending_down_rounded,
-                          size: 18, color: AppColors.income),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.income.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.arrow_upward_rounded,
-                              size: 10, color: AppColors.income),
-                          SizedBox(width: 2),
-                          Text('12%',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.income,
-                                  fontWeight: FontWeight.w600)),
-                        ],
-                      ),
-                    ),
-                  ],
+                const AppIconBadge(
+                  icon: Icons.trending_down_rounded,
+                  color: AppColors.income,
+                  size: 32,
+                  iconSize: 18,
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -410,41 +533,11 @@ class _IncomeExpenseRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.expense.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.trending_up_rounded,
-                          size: 18, color: AppColors.expense),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.expense.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.arrow_downward_rounded,
-                              size: 10, color: AppColors.expense),
-                          SizedBox(width: 2),
-                          Text('8%',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.expense,
-                                  fontWeight: FontWeight.w600)),
-                        ],
-                      ),
-                    ),
-                  ],
+                const AppIconBadge(
+                  icon: Icons.trending_up_rounded,
+                  color: AppColors.expense,
+                  size: 32,
+                  iconSize: 18,
                 ),
                 const SizedBox(height: 12),
                 Text(
