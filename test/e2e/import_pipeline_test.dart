@@ -386,6 +386,19 @@ void main() {
       final drafts = await parser.parse('/nonexistent/file.pdf');
       expect(drafts, isEmpty);
     });
+
+    test('PDFParser detects encrypted PDFs and requests a password', () async {
+      final file = File(
+          '${tempDir.path}${Platform.pathSeparator}encrypted_statement.pdf');
+      file.writeAsStringSync(
+          '%PDF-1.4\ntrailer\n<< /Size 1 /Root 1 0 R /Encrypt 2 0 R >>\n%%EOF');
+
+      expect(await PDFParser.isPasswordProtected(file.path), isTrue);
+      expect(
+        () => PDFParser().parse(file.path),
+        throwsA(isA<PdfPasswordRequiredException>()),
+      );
+    });
   });
 
   group('Labels', () {
@@ -806,7 +819,6 @@ void main() {
     });
 
     test('combined filters', () {
-      final now = DateTime.now();
       var results = repo.transactions.where((t) =>
         t.direction == TransactionDirection.expense &&
         t.categoryId == 'food');

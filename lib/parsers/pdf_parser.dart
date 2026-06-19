@@ -1,16 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:pdf_text/pdf_text.dart';
 import 'package:pocketledger/core/models/parsed_transaction_draft.dart';
 import 'package:pocketledger/parsers/csv_parser.dart';
 
 class PDFParser {
   final CSVParser _csvParser = CSVParser();
 
-  Future<List<ParsedTransactionDraft>> parse(String filePath, {String currency = 'INR'}) async {
+  Future<List<ParsedTransactionDraft>> parse(
+    String filePath, {
+    String currency = 'INR',
+    String? password,
+  }) async {
     try {
-      final text = await _extractText(filePath);
+      final text = await _extractText(filePath, password: password);
       if (text.isEmpty) return [];
 
       final cleanedLines = _cleanPdfText(text);
@@ -30,26 +34,61 @@ class PDFParser {
           rawDescription: d.rawDescription,
         );
       }).toList();
+    } on PdfPasswordRequiredException {
+      rethrow;
     } catch (e) {
       return [];
     }
   }
 
-  Future<String> _extractText(String filePath) async {
+  Future<String> _extractText(String filePath, {String? password}) async {
+    final normalizedPassword = password?.trim();
+    if (await isPasswordProtected(filePath) &&
+        (normalizedPassword == null || normalizedPassword.isEmpty)) {
+      throw const PdfPasswordRequiredException();
+    }
+
     try {
-      final pdfText = await PdfTextExtractor.extractText(filePath);
+      final pdfText = await PdfTextExtractor.extractText(
+        filePath,
+        password: normalizedPassword,
+      );
       return pdfText;
     } catch (e) {
-      final processResult = await Process.run('pdftotext', [filePath, '-']);
-      if (processResult.exitCode == 0) {
-        return processResult.stdout.toString();
+      if (_isPasswordError(e.toString())) {
+        throw const PdfPasswordRequiredException();
       }
       rethrow;
     }
   }
 
+  static Future<bool> isPasswordProtected(String filePath) async {
+    final file = File(filePath);
+    if (!await file.exists()) return false;
+
+    final bytes = await file.readAsBytes();
+    final headerWindow = bytes.take(4096).toList();
+    final allText = latin1.decode(bytes, allowInvalid: true);
+    final headerText = latin1.decode(headerWindow, allowInvalid: true);
+
+    return allText.contains('/Encrypt') ||
+        headerText.contains('/Encrypt') ||
+        headerText.contains('EncryptMetadata');
+  }
+
+  bool _isPasswordError(String message) {
+    final lower = message.toLowerCase();
+    return lower.contains('password') ||
+        lower.contains('encrypted') ||
+        lower.contains('incorrect password');
+  }
+
   List<String> _cleanPdfText(String text) {
-    final lines = text.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+    final lines = text
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
     final List<String> cleaned = [];
 
     for (final line in lines) {
@@ -81,12 +120,14 @@ class PDFParser {
   }
 
   bool _isPageNumber(String line) {
-    return RegExp(r'^Page\s+\d+\s*(of\s+\d+)?$', caseSensitive: false).hasMatch(line) ||
+    return RegExp(r'^Page\s+\d+\s*(of\s+\d+)?$', caseSensitive: false)
+            .hasMatch(line) ||
         RegExp(r'^\d+\s*/\s*\d+$').hasMatch(line);
   }
 
   String _mergeSplitAmounts(String line) {
-    return line.replaceAllMapped(RegExp(r'(\d)\s(\d{3})'), (m) => '${m.group(1)}${m.group(2)}');
+    return line.replaceAllMapped(
+        RegExp(r'(\d)\s(\d{3})'), (m) => '${m.group(1)}${m.group(2)}');
   }
 
   String _linesToCsv(List<String> lines) {
@@ -118,7 +159,18 @@ class PDFParser {
   }
 
   List<String>? _detectHeaders(List<String> lines) {
-    final headerKeywords = ['date', 'narration', 'description', 'particulars', 'debit', 'credit', 'withdrawal', 'deposit', 'balance', 'amount'];
+    final headerKeywords = [
+      'date',
+      'narration',
+      'description',
+      'particulars',
+      'debit',
+      'credit',
+      'withdrawal',
+      'deposit',
+      'balance',
+      'amount'
+    ];
     for (final line in lines) {
       final lower = line.toLowerCase();
       final matches = headerKeywords.where((k) => lower.contains(k)).length;
@@ -153,18 +205,35 @@ class PDFParser {
   }
 }
 
+class PdfPasswordRequiredException implements Exception {
+  const PdfPasswordRequiredException();
+
+  @override
+  String toString() => 'PDF password required';
+}
+
 class PdfTextExtractor {
-  static Future<String> extractText(String filePath) async {
+  static Future<String> extractText(String filePath, {String? password}) async {
     try {
       final file = File(filePath);
       if (!await file.exists()) return '';
 
-      final data = await file.readAsBytes();
-      final pdfDoc = await _parsePdf(data);
-      return pdfDoc;
+      try {
+        final doc = await PDFDoc.fromFile(file, password: password ?? '');
+        return await doc.text;
+      } catch (_) {
+        final data = await file.readAsBytes();
+        if (_looksEncrypted(data)) rethrow;
+        return _parsePdf(data);
+      }
     } catch (e) {
       rethrow;
     }
+  }
+
+  static bool _looksEncrypted(List<int> data) {
+    final text = latin1.decode(data, allowInvalid: true);
+    return text.contains('/Encrypt') || text.contains('EncryptMetadata');
   }
 
   static Future<String> _parsePdf(List<int> data) async {
@@ -222,7 +291,8 @@ class PdfTextExtractor {
       for (int i = 1; i < match.groupCount + 1; i++) {
         final g = match.group(i);
         if (g != null) {
-          buffer.write(g.replaceAllMapped(RegExp(r'\\(.)'), (m) => m.group(1)!));
+          buffer
+              .write(g.replaceAllMapped(RegExp(r'\\(.)'), (m) => m.group(1)!));
         }
       }
       buffer.write('\n');

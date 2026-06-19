@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pocketledger/core/data_repository.dart';
@@ -53,6 +52,17 @@ class ImportSuccess extends ImportState {
   const ImportSuccess(this.count);
 }
 
+class ImportNeedsPassword extends ImportState {
+  final String fileName;
+  final String fileType;
+  final String? message;
+  const ImportNeedsPassword(
+    this.fileName, {
+    required this.fileType,
+    this.message,
+  });
+}
+
 class ImportNotifier extends StateNotifier<ImportState> {
   final Repository _repo;
   final _uuid = const Uuid();
@@ -67,23 +77,34 @@ class ImportNotifier extends StateNotifier<ImportState> {
     state = ImportProcessing(fileName);
     _currentFilePath = filePath;
     _currentFileName = fileName;
+    _drafts = null;
 
     try {
       List<ParsedTransactionDraft> drafts;
+      final normalizedPath = filePath.toLowerCase();
+      final normalizedName = fileName.toLowerCase();
 
-      if (filePath.endsWith('.csv')) {
+      if (normalizedPath.endsWith('.csv') || normalizedName.endsWith('.csv')) {
         final file = File(filePath);
         final content = await file.readAsString();
         drafts = CSVParser().parse(content);
-      } else if (filePath.endsWith('.pdf')) {
-        drafts = await PDFParser().parse(filePath);
+      } else if (normalizedPath.endsWith('.pdf') ||
+          normalizedName.endsWith('.pdf')) {
+        try {
+          drafts = await PDFParser().parse(filePath);
+        } on PdfPasswordRequiredException {
+          state = ImportNeedsPassword(fileName, fileType: 'pdf');
+          return;
+        }
       } else {
-        state = const ImportError('Unsupported file format. Please use CSV or PDF.');
+        state = const ImportError(
+            'Unsupported file format. Please use CSV or PDF.');
         return;
       }
 
       if (drafts.isEmpty) {
-        state = const ImportError('No transactions found in the file. Please check the format.');
+        state = const ImportError(
+            'No transactions found in the file. Please check the format.');
         return;
       }
 
@@ -94,18 +115,57 @@ class ImportNotifier extends StateNotifier<ImportState> {
     }
   }
 
+  Future<void> processPdfWithPassword(String password) async {
+    if (_currentFilePath == null) return;
+    final normalizedPassword = password.trim();
+    if (normalizedPassword.isEmpty) {
+      state = ImportNeedsPassword(
+        _currentFileName ?? '',
+        fileType: 'pdf',
+        message: 'Enter the PDF password to continue.',
+      );
+      return;
+    }
+
+    state = ImportProcessing(_currentFileName ?? '');
+    try {
+      final drafts = await PDFParser().parse(
+        _currentFilePath!,
+        password: normalizedPassword,
+      );
+      if (drafts.isEmpty) {
+        state = const ImportError(
+          'No transactions found in the PDF. Please check the password and file format.',
+        );
+        return;
+      }
+      _drafts = drafts;
+      _showPreview();
+    } on PdfPasswordRequiredException {
+      state = ImportNeedsPassword(
+        _currentFileName ?? '',
+        fileType: 'pdf',
+        message: 'That password did not unlock the PDF. Try again.',
+      );
+    } catch (e) {
+      state = ImportError('Failed to parse PDF: ${e.toString()}');
+    }
+  }
+
   void _showPreview() {
     if (_drafts == null) return;
 
     final existingTransactions = _repo.transactions;
-    final existingDescriptions = existingTransactions.map((t) => t.description.toLowerCase()).toSet();
+    final existingDescriptions =
+        existingTransactions.map((t) => t.description.toLowerCase()).toSet();
 
     int newCount = 0;
     int duplicateCount = 0;
 
     for (final draft in _drafts!) {
       final desc = draft.description?.toLowerCase() ?? '';
-      final isDuplicate = existingDescriptions.contains(desc) && draft.resolvedAmount > 0;
+      final isDuplicate =
+          existingDescriptions.contains(desc) && draft.resolvedAmount > 0;
       if (isDuplicate) {
         duplicateCount++;
       } else {
@@ -130,13 +190,14 @@ class ImportNotifier extends StateNotifier<ImportState> {
     int newCount = 0;
 
     final existingTransactions = _repo.transactions;
-    final existingDescriptions = existingTransactions.map((t) => t.description.toLowerCase()).toSet();
-
-    int needsReviewCount = 0;
+    final existingDescriptions =
+        existingTransactions.map((t) => t.description.toLowerCase()).toSet();
 
     for (final draft in _drafts!) {
       final desc = draft.description?.toLowerCase() ?? '';
-      if (existingDescriptions.contains(desc) && draft.resolvedAmount > 0) continue;
+      if (existingDescriptions.contains(desc) && draft.resolvedAmount > 0) {
+        continue;
+      }
 
       final txn = Transaction(
         id: _uuid.v4(),
@@ -173,13 +234,16 @@ class ImportNotifier extends StateNotifier<ImportState> {
         explanation: 'Newly imported transaction needs review.',
         createdAt: DateTime.now(),
       ));
-      needsReviewCount++;
     }
 
     _repo.addImportBatch(ImportBatch(
       id: batchId,
       fileName: _currentFileName!,
-      fileType: _currentFileName!.endsWith('.csv') ? 'csv' : 'pdf',
+      fileType: switch (_currentFileName!) {
+        final n when n.toLowerCase().endsWith('.csv') => 'csv',
+        final n when n.toLowerCase().endsWith('.pdf') => 'pdf',
+        _ => 'unknown',
+      },
       filePath: _currentFilePath ?? '',
       totalRows: _drafts!.length,
       importedRows: newCount,
@@ -206,7 +270,8 @@ class ImportNotifier extends StateNotifier<ImportState> {
   }
 }
 
-final importProvider = StateNotifierProvider<ImportNotifier, ImportState>((ref) {
+final importProvider =
+    StateNotifierProvider<ImportNotifier, ImportState>((ref) {
   final repo = ref.watch(dataRepositoryProvider);
   return ImportNotifier(repo);
 });
