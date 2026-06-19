@@ -265,7 +265,7 @@ jobs:
           # Check screen files
           for screen in \
             onboarding lock dashboard import review_queue \
-            transactions transaction_detail charts budgets \
+            transactions charts budgets \
             recurring_payments import_history settings agent_logs; do
             if [ ! -f "lib/features/${screen}/${screen}_screen.dart" ]; then
               echo "❌ MISSING SCREEN: lib/features/${screen}/${screen}_screen.dart"

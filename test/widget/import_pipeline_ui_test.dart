@@ -11,14 +11,28 @@ class MockImportPipelineViewModel {
   String searchQuery = '';
   String? selectedCategory;
 
+  MockImportPipelineViewModel copyWith({
+    List<Transaction>? transactions,
+    bool? isLoading,
+    String? searchQuery,
+    String? selectedCategory,
+  }) {
+    return MockImportPipelineViewModel()
+      ..transactions = transactions ?? this.transactions
+      ..isLoading = isLoading ?? this.isLoading
+      ..searchQuery = searchQuery ?? this.searchQuery
+      ..selectedCategory = selectedCategory ?? this.selectedCategory;
+  }
+
   List<Transaction> get filteredTransactions {
     var result = transactions;
     if (searchQuery.isNotEmpty) {
       final query = searchQuery.toUpperCase();
-      result = result.where((t) =>
-        (t.merchantName ?? '').toUpperCase().contains(query) ||
-        t.rawDescription.toUpperCase().contains(query)
-      ).toList();
+      result = result
+          .where((t) =>
+              (t.merchantName ?? '').toUpperCase().contains(query) ||
+              t.rawDescription.toUpperCase().contains(query))
+          .toList();
     }
     return result;
   }
@@ -38,7 +52,8 @@ class MockImportPipelineViewModel {
   int get transactionCount => transactions.length;
 }
 
-final importPipelineViewModelProvider = StateProvider<MockImportPipelineViewModel>((ref) {
+final importPipelineViewModelProvider =
+    StateProvider<MockImportPipelineViewModel>((ref) {
   return MockImportPipelineViewModel();
 });
 
@@ -61,7 +76,11 @@ class ImportTransactionListScreen extends ConsumerWidget {
                 hintText: 'Search transactions...',
                 prefixIcon: Icon(Icons.search),
               ),
-              onChanged: (v) => ref.read(importPipelineViewModelProvider.notifier).state.searchQuery = v,
+              onChanged: (v) {
+                final notifier =
+                    ref.read(importPipelineViewModelProvider.notifier);
+                notifier.state = notifier.state.copyWith(searchQuery: v);
+              },
             ),
           ),
           Padding(
@@ -216,6 +235,20 @@ List<Transaction> create10TestTransactions() {
 
 void main() {
   group('Import Pipeline UI', () {
+    setUp(() {
+      final view =
+          TestWidgetsFlutterBinding.instance.platformDispatcher.views.single;
+      view.physicalSize = const Size(800, 1400);
+      view.devicePixelRatio = 1;
+    });
+
+    tearDown(() {
+      final view =
+          TestWidgetsFlutterBinding.instance.platformDispatcher.views.single;
+      view.resetPhysicalSize();
+      view.resetDevicePixelRatio();
+    });
+
     testWidgets('renders 10 imported transactions', (tester) async {
       final vm = MockImportPipelineViewModel();
       vm.transactions = create10TestTransactions();
@@ -290,10 +323,10 @@ void main() {
         ),
       );
 
-      vm.searchQuery = 'NETFLIX';
+      await tester.enterText(find.byType(TextField), 'NETFLIX');
       await tester.pump();
 
-      expect(find.text('NETFLIX'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'NETFLIX'), findsOneWidget);
       expect(find.text('SWIGGY'), findsNothing);
       expect(find.text('AMAZON PAY'), findsNothing);
     });
@@ -369,7 +402,7 @@ void main() {
       await tester.enterText(find.byType(TextField), 'ZOMATO');
       await tester.pump();
 
-      expect(find.text('ZOMATO'), findsOneWidget);
+      expect(find.widgetWithText(ListTile, 'ZOMATO'), findsOneWidget);
       expect(find.text('SWIGGY'), findsNothing);
     });
   });
