@@ -223,7 +223,9 @@ class PdfTextExtractor {
         return await doc.text;
       } catch (_) {
         final data = await file.readAsBytes();
-        if (_looksEncrypted(data)) rethrow;
+        if (_looksEncrypted(data) && (password == null || password.isEmpty)) {
+          rethrow;
+        }
         return _parsePdf(data);
       }
     } catch (e) {
