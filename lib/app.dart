@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'router.dart';
-import 'core/theme/app_theme.dart';
 
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+import 'core/theme/app_theme.dart';
+import 'router.dart';
+
+final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 class PocketLedgerApp extends ConsumerWidget {
   const PocketLedgerApp({super.key});

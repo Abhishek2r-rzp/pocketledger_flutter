@@ -3,73 +3,82 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  static const Color background = Color(0xFF0A0E1A);
-  static const Color surface = Color(0xFF111827);
-  static const Color surfaceLight = Color(0xFF1F2937);
-  static const Color cardGlass = Color(0x14FFFFFF);
-  static const Color cardGlassBorder = Color(0x1AFFFFFF);
-  static const Color cardGlassHighlight = Color(0x08FFFFFF);
+  static const Color background = Color(0xFFF7F2E8);
+  static const Color backgroundWarm = Color(0xFFFFFBF2);
+  static const Color surface = Color(0xFFFFFCF7);
+  static const Color surfaceLight = Color(0xFFF0E7D8);
+  static const Color cardGlass = Color(0xBFFFFFFF);
+  static const Color cardGlassBorder = Color(0xCCFFFFFF);
+  static const Color cardGlassHighlight = Color(0xF2FFFFFF);
 
-  static const Color primary = Color(0xFF7C5CFC);
-  static const Color primaryLight = Color(0xFFA78BFA);
-  static const Color primaryDark = Color(0xFF5B3DC4);
+  static const Color primary = Color(0xFF7EA88A);
+  static const Color primaryLight = Color(0xFFA7CDB2);
+  static const Color primaryDark = Color(0xFF52745D);
 
-  static const Color accent = Color(0xFF00D4AA);
-  static const Color accentLight = Color(0xFF5EEAD4);
+  static const Color accent = Color(0xFF86A9D3);
+  static const Color accentLight = Color(0xFFC8D9EF);
+  static const Color blush = Color(0xFFEAB9B1);
+  static const Color lavender = Color(0xFFC9B8E8);
 
-  static const Color income = Color(0xFF00D4AA);
-  static const Color expense = Color(0xFFFF4757);
-  static const Color warning = Color(0xFFF77F00);
-  static const Color info = Color(0xFF60A5FA);
+  static const Color income = Color(0xFF6DAA86);
+  static const Color expense = Color(0xFFD9827E);
+  static const Color warning = Color(0xFFD9A85C);
+  static const Color info = Color(0xFF78A7C8);
 
-  static const Color textPrimary = Color(0xFFF1F5F9);
-  static const Color textSecondary = Color(0xFF94A3B8);
-  static const Color textTertiary = Color(0xFF64748B);
+  static const Color textPrimary = Color(0xFF25302C);
+  static const Color textSecondary = Color(0xFF69756E);
+  static const Color textTertiary = Color(0xFF9A8F82);
 
-  static const Color shimmerBase = Color(0x1AFFFFFF);
-  static const Color shimmerHighlight = Color(0x30FFFFFF);
+  static const Color shimmerBase = Color(0x66FFFFFF);
+  static const Color shimmerHighlight = Color(0xE6FFFFFF);
 
-  static const Color error = Color(0xFFFF4757);
-  static const Color success = Color(0xFF00D4AA);
+  static const Color error = Color(0xFFC96D68);
+  static const Color success = Color(0xFF6DAA86);
 
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF7C5CFC), Color(0xFFA78BFA)],
+    colors: [Color(0xFFA7CDB2), Color(0xFF86A9D3)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient accentGradient = LinearGradient(
-    colors: [Color(0xFF00D4AA), Color(0xFF5EEAD4)],
+    colors: [Color(0xFFC8D9EF), Color(0xFFEAB9B1)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient incomeGradient = LinearGradient(
-    colors: [Color(0xFF00D4AA), Color(0xFF34D399)],
+    colors: [Color(0xFFB7D8BD), Color(0xFF6DAA86)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient expenseGradient = LinearGradient(
-    colors: [Color(0xFFFF4757), Color(0xFFFB7185)],
+    colors: [Color(0xFFF1C3B8), Color(0xFFD9827E)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient surfaceGradient = LinearGradient(
-    colors: [Color(0xFF111827), Color(0xFF1A1F2E)],
+    colors: [Color(0xFFFFFBF2), Color(0xFFF3E8D7)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
   static const List<Color> chartColors = [
-    Color(0xFF7C5CFC),
-    Color(0xFF00D4AA),
-    Color(0xFFFF4757),
-    Color(0xFFF77F00),
-    Color(0xFF60A5FA),
-    Color(0xFFEC4899),
-    Color(0xFF8B5CF6),
-    Color(0xFF14B8A6),
+    Color(0xFF7EA88A),
+    Color(0xFF86A9D3),
+    Color(0xFFEAB9B1),
+    Color(0xFFC9B8E8),
+    Color(0xFFD9A85C),
+    Color(0xFF8FC7BD),
+    Color(0xFFDFA4C8),
+    Color(0xFFB8B36F),
   ];
+
+  static const Color incomeLow = Color(0x336DAA86);
+  static const Color expenseLow = Color(0x33D9827E);
+  static const Color whiteLow = Color(0x66FFFFFF);
+  static const Color whiteMid = Color(0xBFFFFFFF);
+  static const Color blackLow = Color(0x1F25302C);
 }

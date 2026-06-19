@@ -1,0 +1,144 @@
+name: Production Code Review
+
+on:
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+
+jobs:
+  flutter-quality-gate:
+    name: Flutter Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Detect changed Dart files
+        id: dart-files
+        shell: bash
+        run: |
+          if [ -n "${{ github.base_ref }}" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            files="$(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" -- '*.dart' | tr '\n' ' ')"
+          else
+            files="$(git diff --name-only --diff-filter=ACMR "HEAD~1...HEAD" -- '*.dart' | tr '\n' ' ')"
+          fi
+          echo "files=${files}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify changed Dart formatting
+        if: steps.dart-files.outputs.files != ''
+        run: dart format --set-exit-if-changed ${{ steps.dart-files.outputs.files }}
+
+      - name: Analyze changed Dart code
+        if: steps.dart-files.outputs.files != ''
+        run: dart analyze --fatal-warnings ${{ steps.dart-files.outputs.files }}
+
+      - name: Run focused unit and widget tests
+        run: |
+          flutter test test/unit/ --reporter expanded
+          flutter test test/widget/ --reporter expanded
+
+      - name: Build web release
+        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+
+  visual-e2e:
+    name: Mobile Visual E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e_playwright/package-lock.json
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build local web bundle
+        run: flutter build web --release
+
+      - name: Install Playwright dependencies
+        working-directory: e2e_playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run visual e2e
+        working-directory: e2e_playwright
+        run: npm test
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  scorecard:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard security review
+        uses: ossf/scorecard-action@v2.4.0
+        with:
+          results_file: scorecard-results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload Scorecard SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: scorecard-results.sarif
